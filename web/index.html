@@ -1,0 +1,180 @@
+<!DOCTYPE html> 
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv='cache-control' content='no-cache'>
+    <meta http-equiv='expires' content='0'>
+    <meta http-equiv='pragma' content='no-cache'>
+    <title>PyWeather v0.2</title>
+    <link rel="stylesheet" href="css/bulma.min.css" />
+    <script type="text/javascript" src="/eel.js"></script>
+    <script type="text/javascript">
+    	var lstmod;
+    	window.onload=function(){
+      	getWeather();
+      	clock();
+      	
+    	    	  	
+    	}
+    
+    	function clock() {
+        	var today = new Date();
+        	var h = today.getHours();
+        	var m = today.getMinutes();
+        	var s = today.getSeconds();
+        	m = checkTime(m);
+        	s = checkTime(s);
+        	document.getElementById('clock').innerHTML = h + ":" + m + ":" + s;
+        	document.getElementById('date').innerHTML  = today.toDateString();
+        	var t = setTimeout(clock, 500);
+        }
+        function checkTime(i) {
+        	if (i < 10) {i = "0" + i};  // add zero in front of numbers < 10
+        	return i;
+        }
+    	/*-------------------- Get weather data --------------------*/
+    	async function getWeather(){
+    	      await eel.pyGetWeather()();
+    	      lstmod = await eel.pyLastMod()();
+    	      showWeather();
+    	      
+    	      
+    	}
+    	
+    	    	
+    	function showWeather(){
+    	  var xhttp = new XMLHttpRequest();
+    	  xhttp.onreadystatechange = function(){
+  	    if(this.readyState == 4 && this.status == 200){
+      		var tbHtml="";
+      		var weather = JSON.parse(this.responseText);
+      		if (weather !== null){
+      		  for (var i = 0;i < weather.length;i++){
+      			  tbHtml += "<tr><td><img src=\"" + "http://openweathermap.org/img/w/" + weather[i]['icon'] + ".png\"</td>"+
+				     "<td>" + weather[i]['city'] + "</td>" + "<td>" + weather[i]['temperature']+"&deg; C</td>" + 
+				     "<td>" + weather[i]['description']+ "</td>" + "<td><a class='button is-danger is-small' onclick='dellCity(this.id)' id='"+ 
+				     weather[i]['city'] + "'>Remove</a></td></tr>"; 
+				     
+		        }
+	  
+        		  	document.getElementById("tbody").innerHTML = tbHtml;
+        		  	if (weather.length > 0){
+        		  	  document.getElementById("lastmp").innerText = lstmod;
+        		  	}else{
+        		  	  document.getElementById("lastmp").innerText = "No data available!";
+        		  	}
+        		  	
+        		  	
+        	         				
+	       	}
+		
+	       }
+      }
+	      xhttp.open("GET","data/data.json",true);
+	      xhttp.send();
+	                  
+	 }
+	 /*----------------------- Add new City ------------------------*/
+    	function addCity(){
+    	  var city = document.forms["mainForm"]["city"].value;
+    	  if (city == "") {
+           alert("City must be filled out");
+    	     return false;
+       		 }
+        else{
+           eel.pyAddCity(city);
+           getWeather();
+           document.forms["mainForm"].reset();
+                   
+           }
+           
+         		 
+    	}
+    	/*-------------------------- del City --------------------------*/
+    	function dellCity(city){
+    	  var conf = confirm("Are you sure!");
+    	  if (conf == true){
+    	    eel.pyDelCity(city);
+    	    showWeather();
+    	    
+    	  }
+    	  
+	   	}
+    	/*----------------------- Message ------------------------*/
+    	eel.expose(jsMessage)
+    	function jsMessage(err){
+    	  alert(err)
+	  
+    	
+    	}
+    	
+    </script>
+</head>
+
+<body>
+    <section class="hero is-primary">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    What's the weather like?
+                </h1>
+            </div>
+            <div class="container">
+                <p class="tag is-dark" id="date"></p>
+                <p class="tag is-light" id="clock"></p>
+            </div>
+        </div>
+    </section>
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-offset-4 is-4">
+                    <form name="mainForm" onsubmit="return false">
+                        <div class="field has-addons">
+                            <div class="control is-expanded">
+                                <input class="input" id="cityInp" name="city" type="text" placeholder="City Name" autocomplete="off">
+                            </div>
+                            <div class="control">
+                                <button class="button is-info" onclick=addCity() >
+                                    Add City
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="section">
+    	<div class="container">
+	        <p class="is-size-7">Last update </p>
+          <p class="tag is-dark" id="lastmp">No data available!</p>
+        </div>
+        <div class="container">
+            <div class="columns">
+                <div class="column is-offset-4 is-4">
+                    <table name="table" class="table is-bordered is-striped is-fullwidth is-narrow">
+                         <thead>
+                           <tr class=is-selected>
+            		               <td>Icon</td>
+                                <td>City</td>
+                                <td>Temperature</td>
+                                <td>Description</td>
+                                <td><a class="button is-primary is-outlined is-inverted is-small" onclick="getWeather()">Refresh</a></td>
+            		   </tr>
+            	          </thead>
+            	          <tbody id="tbody">
+            	          </tbody>
+            	    </table>
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    </footer>
+</body>
+
+</html>

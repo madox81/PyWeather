@@ -6,10 +6,12 @@ import requests
 
 eel.init('web')
 
+# Create data folder for json files
 def pyCrData():
   if not os.path.exists('web/data'):
     os.makedirs('web/data')
 
+# Delete city from weather information table
 @eel.expose()
 def pyDelCity(city):
   with open('web/data/cities.json',"r") as json_file :
@@ -33,7 +35,7 @@ def pyDelCity(city):
       with open('web/data/data.json',"w") as jsond_file :
        json.dump(data,jsond_file)
       
-    
+# Add city from weather information table    
 @eel.expose
 def pyAddCity(city):
     if os.path.exists('web/data/cities.json'):
@@ -49,7 +51,7 @@ def pyAddCity(city):
         cities.append(city)
         json.dump(cities,json_file)
       
- 
+# Get weather data using python request library 
 @eel.expose
 def pyGetWeather():
   try:
@@ -80,7 +82,8 @@ def pyGetWeather():
                   
   except:
     return
-    
+
+# Get last modification for weather data file   
 @eel.expose
 def pyLastMod():
 	if os.path.exists('web/data/data.json'):
